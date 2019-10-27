@@ -75,11 +75,13 @@ func (t transition) Target() StateId {
 type Report interface {
 	Visited() StateSet
 	Transited() []Transition
+	Deadlocked() StateSet
 }
 
 type report struct {
-	visited   StateSet
-	transited []Transition
+	visited    StateSet
+	transited  []Transition
+	deadlocked StateSet
 }
 
 func (rp report) Visited() StateSet {
@@ -88,6 +90,10 @@ func (rp report) Visited() StateSet {
 
 func (rp report) Transited() []Transition {
 	return rp.transited
+}
+
+func (rp report) Deadlocked() StateSet {
+	return rp.deadlocked
 }
 
 type Printer struct {
@@ -104,11 +110,12 @@ func (pr Printer) Print(rp Report) (int, error) {
 		return written, err
 	}
 	for _, s := range rp.Visited() {
-		n, err := fmt.Fprintf(
-			pr.writer,
-			"  \"%s\" [label=\"%s\"]\n",
-			s.Id(), stateLabel(s),
-		)
+		n := 0
+		if _, ok := rp.Deadlocked()[s.Id()]; ok {
+			n, err = pr.printDeadlocked(s)
+		} else {
+			n, err = pr.printNormal(s)
+		}
 		written += n
 		if err != nil {
 			return written, err
@@ -117,7 +124,7 @@ func (pr Printer) Print(rp Report) (int, error) {
 	for _, t := range rp.Transited() {
 		n, err := fmt.Fprintf(
 			pr.writer,
-			"  \"%s\" -> \"%s\" [label=\"%s.%s\"]\n",
+			"  \"%s\" -> \"%s\" [label=\"%s.%s\"];\n",
 			t.Source(), t.Target(), t.Process(), t.Label(),
 		)
 		written += n
@@ -132,6 +139,22 @@ func (pr Printer) Print(rp Report) (int, error) {
 		return written, err
 	}
 	return written, nil
+}
+
+func (pr Printer) printNormal(s State) (int, error) {
+	return fmt.Fprintf(
+		pr.writer,
+		"  \"%s\" [label=\"%s\"]\n",
+		s.Id(), stateLabel(s),
+	)
+}
+
+func (pr Printer) printDeadlocked(s State) (int, error) {
+	return fmt.Fprintf(
+		pr.writer,
+		"  \"%s\" [label=\"%s\", fillcolor=\"#FFAAAA\", style=\"solid,filled\"];\n",
+		s.Id(), stateLabel(s),
+	)
 }
 
 func stateLabel(s State) string {

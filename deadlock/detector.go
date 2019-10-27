@@ -18,6 +18,7 @@ func (d detector) Detect(s System) Report {
 
 	visited := StateSet{}
 	transited := []Transition{}
+	deadlocked := StateSet{}
 
 	queue := []State{d.initialize(s)}
 
@@ -56,12 +57,17 @@ func (d detector) Detect(s System) Report {
 			}
 		}
 
+		if len(ts) == 0 {
+			deadlocked[from.Id()] = from
+		}
+
 		transited = append(transited, ts...)
 	}
 
 	return report{
-		visited:   visited,
-		transited: transited,
+		visited:    visited,
+		transited:  transited,
+		deadlocked: deadlocked,
 	}
 
 }
