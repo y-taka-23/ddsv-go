@@ -6,67 +6,99 @@ import (
 	"io"
 	"sort"
 	"strings"
+
+	"github.com/y-taka-23/ddsv-go/deadlock/rule"
 )
 
-type Report interface {
-	Visited() stateSet
-	Transited() []transition
-}
+type StateId string
 
-type report struct {
-	visited   stateSet
-	transited []transition
-}
+type StateSet map[StateId]State
 
-func (rp report) Visited() stateSet {
-	return rp.visited
-}
+type LocationSet map[ProcessId]rule.Location
 
-func (rp report) Transited() []transition {
-	return rp.transited
+type State interface {
+	Id() StateId
+	Locations() LocationSet
+	SharedVars() rule.SharedVars
 }
 
 type state struct {
-	locations  locationMap
-	sharedVars sharedVars
+	locations  LocationSet
+	sharedVars rule.SharedVars
 }
 
-func (s state) id() stateId {
+func (s state) Id() StateId {
 	h := sha1.New()
 	serial := fmt.Sprintf("%+v%+v", s.locations, s.sharedVars)
 	h.Write([]byte(serial))
-	return stateId(fmt.Sprintf("%x", h.Sum(nil)))
+	return StateId(fmt.Sprintf("%x", h.Sum(nil)))
 }
 
-func (s state) label() label {
-	lbls := []string{}
-	for pid, l := range s.locations {
-		lbls = append(lbls, fmt.Sprintf("%s @ %s", pid, l))
-	}
-	sort.Strings(lbls)
-	return label(strings.Join(lbls, ", "))
+func (s state) Locations() LocationSet {
+	return s.locations
+}
+
+func (s state) SharedVars() rule.SharedVars {
+	return s.sharedVars
+}
+
+type Transition interface {
+	Process() ProcessId
+	Label() rule.Label
+	Source() StateId
+	Target() StateId
 }
 
 type transition struct {
-	process processId
-	label   label
-	source  stateId
-	target  stateId
+	process ProcessId
+	label   rule.Label
+	source  StateId
+	target  StateId
 }
 
-type Printer interface {
-	Print(Report) (int, error)
+func (t transition) Process() ProcessId {
+	return t.process
 }
 
-func NewPrinter(w io.Writer) Printer {
-	return printer{writer: w}
+func (t transition) Label() rule.Label {
+	return t.label
 }
 
-type printer struct {
+func (t transition) Source() StateId {
+	return t.source
+}
+
+func (t transition) Target() StateId {
+	return t.target
+}
+
+type Report interface {
+	Visited() StateSet
+	Transited() []Transition
+}
+
+type report struct {
+	visited   StateSet
+	transited []Transition
+}
+
+func (rp report) Visited() StateSet {
+	return rp.visited
+}
+
+func (rp report) Transited() []Transition {
+	return rp.transited
+}
+
+type Printer struct {
 	writer io.Writer
 }
 
-func (pr printer) Print(rp Report) (int, error) {
+func NewPrinter(w io.Writer) Printer {
+	return Printer{writer: w}
+}
+
+func (pr Printer) Print(rp Report) (int, error) {
 	written, err := fmt.Fprintln(pr.writer, "digraph {")
 	if err != nil {
 		return written, err
@@ -75,7 +107,7 @@ func (pr printer) Print(rp Report) (int, error) {
 		n, err := fmt.Fprintf(
 			pr.writer,
 			"  \"%s\" [label=\"%s\"]\n",
-			s.id(), s.label(),
+			s.Id(), stateLabel(s),
 		)
 		written += n
 		if err != nil {
@@ -86,7 +118,7 @@ func (pr printer) Print(rp Report) (int, error) {
 		n, err := fmt.Fprintf(
 			pr.writer,
 			"  \"%s\" -> \"%s\" [label=\"%s.%s\"]\n",
-			t.source, t.target, t.process, t.label,
+			t.Source(), t.Target(), t.Process(), t.Label(),
 		)
 		written += n
 		if err != nil {
@@ -102,5 +134,11 @@ func (pr printer) Print(rp Report) (int, error) {
 	return written, nil
 }
 
-type stateId string
-type stateSet = map[stateId]state
+func stateLabel(s State) string {
+	lbls := []string{}
+	for pid, l := range s.Locations() {
+		lbls = append(lbls, fmt.Sprintf("%s @ %s", pid, l))
+	}
+	sort.Strings(lbls)
+	return strings.Join(lbls, ", ")
+}

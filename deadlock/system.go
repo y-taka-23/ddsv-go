@@ -1,107 +1,63 @@
 package deadlock
 
+import (
+	"github.com/y-taka-23/ddsv-go/deadlock/rule"
+)
+
+type ProcessId string
+
 type Process interface {
-	Id() processId
-	EntryPoint() location
-	Rules() ruleSet
-	EnterAt(location) Process
-	Define(Rule) Process
+	Id() ProcessId
+	EntryPoint() rule.Location
+	Rules() rule.RuleSet
+	EnterAt(rule.Location) Process
+	Define(rule.Rule) Process
 }
 
 func NewProcess() Process {
 	return process{
-		id:    "",
-		rules: ruleSet{},
+		id:         "",
+		entryPoint: "",
+		rules:      rule.RuleSet{},
 	}
 }
 
 type process struct {
-	id         processId
-	entryPoint location
-	rules      ruleSet
+	id         ProcessId
+	entryPoint rule.Location
+	rules      rule.RuleSet
 }
 
-func (p process) Id() processId {
+func (p process) Id() ProcessId {
 	return p.id
 }
 
-func (p process) EntryPoint() location {
+func (p process) EntryPoint() rule.Location {
 	return p.entryPoint
 }
 
-func (p process) EnterAt(l location) Process {
+func (p process) EnterAt(l rule.Location) Process {
 	p.entryPoint = l
 	return p
 }
 
-func (p process) Define(r Rule) Process {
+func (p process) Define(r rule.Rule) Process {
 	rs, ok := p.rules[r.Source()]
 	if !ok {
-		p.rules[r.Source()] = []Rule{r}
+		p.rules[r.Source()] = []rule.Rule{r}
 		return p
 	}
 	p.rules[r.Source()] = append(rs, r)
 	return p
 }
 
-func (p process) Rules() ruleSet {
+func (p process) Rules() rule.RuleSet {
 	return p.rules
-}
-
-type Rule interface {
-	Source() location
-	Target() location
-	Label() label
-	Action() action
-	Do(label) Rule
-	MoveTo(location) Rule
-}
-
-func At(l location) Rule {
-	return rule{
-		source: l,
-		target: l,
-		label:  "",
-		action: func(sv sharedVars) sharedVars { return sv },
-	}
-}
-
-type rule struct {
-	source location
-	target location
-	label  label
-	action action
-}
-
-func (r rule) Source() location {
-	return r.source
-}
-
-func (r rule) Target() location {
-	return r.target
-}
-
-func (r rule) Label() label {
-	return r.label
-}
-
-func (r rule) Action() action {
-	return r.action
-}
-
-func (r rule) Do(lbl label) Rule {
-	r.label = lbl
-	return r
-}
-
-func (r rule) MoveTo(l location) Rule {
-	r.target = l
-	return r
 }
 
 type System interface {
 	Processes() []Process
-	Register(processId, Process) System
+	Register(ProcessId, Process) System
 }
 
 func NewSystem() System {
@@ -112,31 +68,18 @@ func NewSystem() System {
 
 type system struct {
 	processes []Process
-	initVars  sharedVars
 }
 
 func (s system) Processes() []Process {
 	return s.processes
 }
 
-func (s system) Register(pid processId, p Process) System {
+func (s system) Register(pid ProcessId, p Process) System {
 	registered := process{
 		id:         pid,
-		rules:      p.Rules(),
 		entryPoint: p.EntryPoint(),
+		rules:      p.Rules(),
 	}
 	s.processes = append(s.processes, registered)
 	return s
 }
-
-type processId string
-type location string
-type ruleSet map[location][]Rule
-type locationMap map[processId]location
-
-type label string
-type action func(sharedVars) sharedVars
-
-type varName string
-
-type sharedVars map[varName]int
