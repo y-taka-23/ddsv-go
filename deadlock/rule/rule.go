@@ -6,18 +6,12 @@ type Label string
 
 type RuleSet map[Location][]Rule
 
-type VarName string
-
-type SharedVars map[VarName]int
-
-type Action func(SharedVars) SharedVars
-
 type Rule interface {
 	Source() Location
 	Target() Location
 	Label() Label
 	Action() Action
-	Do(Label) Rule
+	Do(Label, Action) Rule
 	MoveTo(Location) Rule
 }
 
@@ -26,7 +20,7 @@ func At(l Location) Rule {
 		source: l,
 		target: l,
 		label:  "",
-		action: func(sv SharedVars) SharedVars { return sv },
+		action: func(sv SharedVars) SharedVars { return clone(sv) },
 	}
 }
 
@@ -53,12 +47,51 @@ func (r rule) Action() Action {
 	return r.action
 }
 
-func (r rule) Do(lbl Label) Rule {
+func (r rule) Do(lbl Label, a Action) Rule {
 	r.label = lbl
+	r.action = a
 	return r
 }
 
 func (r rule) MoveTo(l Location) Rule {
 	r.target = l
 	return r
+}
+
+type VarName string
+
+type SharedVars map[VarName]int
+
+type Action func(SharedVars) SharedVars
+
+func Copy(y, x VarName) Action {
+	return func(sv SharedVars) SharedVars {
+		modified := clone(sv)
+		modified[x] = sv[y]
+		return modified
+	}
+}
+
+func Set(n int, x VarName) Action {
+	return func(sv SharedVars) SharedVars {
+		modified := clone(sv)
+		modified[x] = n
+		return modified
+	}
+}
+
+func Add(n int, x VarName) Action {
+	return func(sv SharedVars) SharedVars {
+		modified := clone(sv)
+		modified[x] = sv[x] + n
+		return modified
+	}
+}
+
+func clone(sv SharedVars) SharedVars {
+	c := map[VarName]int{}
+	for k, v := range sv {
+		c[k] = v
+	}
+	return c
 }

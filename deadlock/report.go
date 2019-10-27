@@ -135,10 +135,15 @@ func (pr Printer) Print(rp Report) (int, error) {
 }
 
 func stateLabel(s State) string {
-	lbls := []string{}
+	ss := []string{}
 	for pid, l := range s.Locations() {
-		lbls = append(lbls, fmt.Sprintf("%s @ %s", pid, l))
+		ss = append(ss, fmt.Sprintf("%s @ %s", pid, l))
 	}
-	sort.Strings(lbls)
-	return strings.Join(lbls, ", ")
+	vs := []string{}
+	for x, n := range s.SharedVars() {
+		vs = append(vs, fmt.Sprintf("%s = %d", x, n))
+	}
+	sort.Strings(ss)
+	sort.Strings(vs)
+	return strings.Join(ss, ", ") + "\\n" + strings.Join(vs, ", ")
 }
