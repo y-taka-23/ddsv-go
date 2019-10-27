@@ -1,13 +1,11 @@
 package deadlock
 
 import (
-	"fmt"
-
 	"github.com/y-taka-23/ddsv-go/deadlock/rule"
 )
 
 type Detector interface {
-	Detect(s System) (Report, error)
+	Detect(s System) Report
 }
 
 func NewDetector() Detector {
@@ -16,7 +14,7 @@ func NewDetector() Detector {
 
 type detector struct{}
 
-func (d detector) Detect(s System) (Report, error) {
+func (d detector) Detect(s System) Report {
 
 	visited := StateSet{}
 	transited := []Transition{}
@@ -34,11 +32,9 @@ func (d detector) Detect(s System) (Report, error) {
 
 		ts := []Transition{}
 		for _, p := range s.Processes() {
-			focus, ok := from.Locations()[p.Id()]
-			if !ok {
-				return nil,
-					fmt.Errorf("location of prosess %s is undefined", p.Id())
-			}
+			// The locations of every processes are
+			// certainly defined inductively
+			focus, _ := from.Locations()[p.Id()]
 			for _, r := range p.Rules()[focus] {
 				nextLocs := map[ProcessId]rule.Location{}
 				for pid, l := range from.Locations() {
@@ -66,7 +62,7 @@ func (d detector) Detect(s System) (Report, error) {
 	return report{
 		visited:   visited,
 		transited: transited,
-	}, nil
+	}
 
 }
 
