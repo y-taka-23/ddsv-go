@@ -75,12 +75,14 @@ func (t transition) Target() StateId {
 type Report interface {
 	Visited() StateSet
 	Transited() []Transition
+	Initial() StateId
 	Deadlocked() StateSet
 }
 
 type report struct {
 	visited    StateSet
 	transited  []Transition
+	initial    StateId
 	deadlocked StateSet
 }
 
@@ -90,6 +92,10 @@ func (rp report) Visited() StateSet {
 
 func (rp report) Transited() []Transition {
 	return rp.transited
+}
+
+func (rp report) Initial() StateId {
+	return rp.initial
 }
 
 func (rp report) Deadlocked() StateSet {
@@ -111,7 +117,9 @@ func (pr Printer) Print(rp Report) (int, error) {
 	}
 	for _, s := range rp.Visited() {
 		n := 0
-		if _, ok := rp.Deadlocked()[s.Id()]; ok {
+		if s.Id() == rp.Initial() {
+			n, err = pr.printInitial(s)
+		} else if _, ok := rp.Deadlocked()[s.Id()]; ok {
 			n, err = pr.printDeadlocked(s)
 		} else {
 			n, err = pr.printNormal(s)
@@ -145,6 +153,14 @@ func (pr Printer) printNormal(s State) (int, error) {
 	return fmt.Fprintf(
 		pr.writer,
 		"  \"%s\" [label=\"%s\"]\n",
+		s.Id(), stateLabel(s),
+	)
+}
+
+func (pr Printer) printInitial(s State) (int, error) {
+	return fmt.Fprintf(
+		pr.writer,
+		"  \"%s\" [label=\"%s\", fillcolor=\"#AAFFFF\", style=\"solid,filled\"];\n",
 		s.Id(), stateLabel(s),
 	)
 }
