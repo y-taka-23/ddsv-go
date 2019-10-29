@@ -7,6 +7,94 @@ import (
 	"github.com/y-taka-23/ddsv-go/deadlock/rule"
 )
 
+func TestEq(t *testing.T) {
+
+	tests := []struct {
+		name      string
+		var_      rule.VarName
+		val       int
+		in        rule.SharedVars
+		want      bool
+		wantError bool
+	}{
+		{
+			name: "declared as equal", var_: "x", val: 42,
+			in:   rule.SharedVars{"x": 42},
+			want: true, wantError: false,
+		},
+		{
+			name: "declared as not equal", var_: "x", val: 42,
+			in:   rule.SharedVars{"x": 1},
+			want: false, wantError: false,
+		},
+		{
+			name: "undeclared", var_: "x", val: 42,
+			in:   rule.SharedVars{},
+			want: false, wantError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := rule.Eq(tt.var_, tt.val)(tt.in)
+			if tt.wantError && errors.Is(err, nil) {
+				t.Fatalf("want error, but has no error")
+			}
+			if !tt.wantError && !errors.Is(err, nil) {
+				t.Fatalf("want no error, but has error %v", err)
+			}
+			if !tt.wantError && got != tt.want {
+				t.Fatalf("want %+v, but %+v", tt.want, got)
+			}
+		})
+	}
+
+}
+
+func TestNotEq(t *testing.T) {
+
+	tests := []struct {
+		name      string
+		var_      rule.VarName
+		val       int
+		in        rule.SharedVars
+		want      bool
+		wantError bool
+	}{
+		{
+			name: "declared as equal", var_: "x", val: 42,
+			in:   rule.SharedVars{"x": 42},
+			want: false, wantError: false,
+		},
+		{
+			name: "declared as not equal", var_: "x", val: 42,
+			in:   rule.SharedVars{"x": 1},
+			want: true, wantError: false,
+		},
+		{
+			name: "undeclared", var_: "x", val: 42,
+			in:   rule.SharedVars{},
+			want: false, wantError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := rule.NotEq(tt.var_, tt.val)(tt.in)
+			if tt.wantError && errors.Is(err, nil) {
+				t.Fatalf("want error, but has no error")
+			}
+			if !tt.wantError && !errors.Is(err, nil) {
+				t.Fatalf("want no error, but has error %v", err)
+			}
+			if !tt.wantError && got != tt.want {
+				t.Fatalf("want %+v, but %+v", tt.want, got)
+			}
+		})
+	}
+
+}
+
 func TestCopy(t *testing.T) {
 
 	tests := []struct {

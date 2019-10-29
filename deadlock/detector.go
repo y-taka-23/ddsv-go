@@ -40,6 +40,15 @@ func (d detector) Detect(s System) (Report, error) {
 			// certainly defined inductively
 			focus, _ := from.Locations()[p.Id()]
 			for _, r := range p.Rules()[focus] {
+
+				fireable, err := r.Guard()(from.SharedVars())
+				if !errors.Is(err, nil) {
+					return report{}, err
+				}
+				if !fireable {
+					continue
+				}
+
 				nextLocs := map[ProcessId]rule.Location{}
 				for pid, l := range from.Locations() {
 					nextLocs[pid] = l
