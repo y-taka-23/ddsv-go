@@ -1,5 +1,9 @@
 package rule
 
+import (
+	"fmt"
+)
+
 type Location string
 
 type Label string
@@ -20,7 +24,9 @@ func At(l Location) Rule {
 		source: l,
 		target: l,
 		label:  "",
-		action: func(sv SharedVars) SharedVars { return clone(sv) },
+		action: func(sv SharedVars) (SharedVars, error) {
+			return clone(sv), nil
+		},
 	}
 }
 
@@ -62,29 +68,41 @@ type VarName string
 
 type SharedVars map[VarName]int
 
-type Action func(SharedVars) SharedVars
+type Action func(SharedVars) (SharedVars, error)
 
 func Copy(y, x VarName) Action {
-	return func(sv SharedVars) SharedVars {
+	return func(sv SharedVars) (SharedVars, error) {
 		modified := clone(sv)
+		if _, ok := sv[y]; !ok {
+			return SharedVars{}, fmt.Errorf("undeclared variable: %s", y)
+		}
+		if _, ok := modified[x]; !ok {
+			return SharedVars{}, fmt.Errorf("undeclared variable: %s", x)
+		}
 		modified[x] = sv[y]
-		return modified
+		return modified, nil
 	}
 }
 
 func Set(n int, x VarName) Action {
-	return func(sv SharedVars) SharedVars {
+	return func(sv SharedVars) (SharedVars, error) {
 		modified := clone(sv)
+		if _, ok := modified[x]; !ok {
+			return SharedVars{}, fmt.Errorf("undeclared variable: %s", x)
+		}
 		modified[x] = n
-		return modified
+		return modified, nil
 	}
 }
 
 func Add(n int, x VarName) Action {
-	return func(sv SharedVars) SharedVars {
+	return func(sv SharedVars) (SharedVars, error) {
 		modified := clone(sv)
+		if _, ok := modified[x]; !ok {
+			return SharedVars{}, fmt.Errorf("undeclared variable: %s", x)
+		}
 		modified[x] = sv[x] + n
-		return modified
+		return modified, nil
 	}
 }
 

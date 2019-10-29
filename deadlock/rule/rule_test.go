@@ -1,6 +1,7 @@
 package rule_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/y-taka-23/ddsv-go/deadlock/rule"
@@ -9,33 +10,43 @@ import (
 func TestCopy(t *testing.T) {
 
 	tests := []struct {
-		name string
-		from rule.VarName
-		to   rule.VarName
-		in   rule.SharedVars
-		want rule.SharedVars
+		name      string
+		from      rule.VarName
+		to        rule.VarName
+		in        rule.SharedVars
+		want      rule.SharedVars
+		wantError bool
 	}{
 		{
 			name: "defined to defined", from: "x", to: "y",
-			in:   rule.SharedVars{"x": 42, "y": 1},
-			want: rule.SharedVars{"x": 42, "y": 42},
+			in:        rule.SharedVars{"x": 42, "y": 1},
+			want:      rule.SharedVars{"x": 42, "y": 42},
+			wantError: false,
 		},
 		{
 			name: "defined to undefined", from: "x", to: "y",
-			in:   rule.SharedVars{"x": 42},
-			want: rule.SharedVars{"x": 42, "y": 42},
+			in:        rule.SharedVars{"x": 42},
+			want:      rule.SharedVars{},
+			wantError: true,
 		},
 		{
 			name: "undefined to defined", from: "x", to: "y",
-			in:   rule.SharedVars{"y": 42},
-			want: rule.SharedVars{"y": 0},
+			in:        rule.SharedVars{"y": 42},
+			want:      rule.SharedVars{},
+			wantError: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := rule.Copy(tt.from, tt.to)(tt.in)
-			if !eqVars(got, tt.want) {
+			got, err := rule.Copy(tt.from, tt.to)(tt.in)
+			if tt.wantError && errors.Is(err, nil) {
+				t.Fatalf("want error, but has no error")
+			}
+			if !tt.wantError && !errors.Is(err, nil) {
+				t.Fatalf("want no error, but has error %v", err)
+			}
+			if !tt.wantError && !eqVars(got, tt.want) {
 				t.Fatalf("want %+v, but %+v", tt.want, got)
 			}
 		})
@@ -46,28 +57,37 @@ func TestCopy(t *testing.T) {
 func TestSet(t *testing.T) {
 
 	tests := []struct {
-		name string
-		val  int
-		to   rule.VarName
-		in   rule.SharedVars
-		want rule.SharedVars
+		name      string
+		val       int
+		to        rule.VarName
+		in        rule.SharedVars
+		want      rule.SharedVars
+		wantError bool
 	}{
 		{
 			name: "to defined", val: 42, to: "x",
-			in:   rule.SharedVars{"x": 1},
-			want: rule.SharedVars{"x": 42},
+			in:        rule.SharedVars{"x": 1},
+			want:      rule.SharedVars{"x": 42},
+			wantError: false,
 		},
 		{
 			name: "to undefined", val: 42, to: "x",
-			in:   rule.SharedVars{},
-			want: rule.SharedVars{"x": 42},
+			in:        rule.SharedVars{},
+			want:      rule.SharedVars{},
+			wantError: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := rule.Set(tt.val, tt.to)(tt.in)
-			if !eqVars(got, tt.want) {
+			got, err := rule.Set(tt.val, tt.to)(tt.in)
+			if tt.wantError && errors.Is(err, nil) {
+				t.Fatalf("want error, but has no error")
+			}
+			if !tt.wantError && !errors.Is(err, nil) {
+				t.Fatalf("want no error, but has error %v", err)
+			}
+			if !tt.wantError && !eqVars(got, tt.want) {
 				t.Fatalf("want %+v, but %+v", tt.want, got)
 			}
 		})
@@ -78,28 +98,37 @@ func TestSet(t *testing.T) {
 func TestAdd(t *testing.T) {
 
 	tests := []struct {
-		name string
-		val  int
-		to   rule.VarName
-		in   rule.SharedVars
-		want rule.SharedVars
+		name      string
+		val       int
+		to        rule.VarName
+		in        rule.SharedVars
+		want      rule.SharedVars
+		wantError bool
 	}{
 		{
 			name: "to defined", val: 42, to: "x",
-			in:   rule.SharedVars{"x": 1},
-			want: rule.SharedVars{"x": 43},
+			in:        rule.SharedVars{"x": 1},
+			want:      rule.SharedVars{"x": 43},
+			wantError: false,
 		},
 		{
 			name: "to undefined", val: 42, to: "x",
-			in:   rule.SharedVars{},
-			want: rule.SharedVars{"x": 42},
+			in:        rule.SharedVars{},
+			want:      rule.SharedVars{},
+			wantError: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := rule.Add(tt.val, tt.to)(tt.in)
-			if !eqVars(got, tt.want) {
+			got, err := rule.Add(tt.val, tt.to)(tt.in)
+			if tt.wantError && errors.Is(err, nil) {
+				t.Fatalf("want error, but has no error")
+			}
+			if !tt.wantError && !errors.Is(err, nil) {
+				t.Fatalf("want no error, but has error %v", err)
+			}
+			if !tt.wantError && !eqVars(got, tt.want) {
 				t.Fatalf("want %+v, but %+v", tt.want, got)
 			}
 		})

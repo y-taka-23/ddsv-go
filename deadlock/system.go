@@ -56,22 +56,39 @@ func (p process) Rules() rule.RuleSet {
 }
 
 type System interface {
+	InitVars() rule.SharedVars
 	Processes() []Process
+	Declare(rule.SharedVars) System
 	Register(ProcessId, Process) System
 }
 
 func NewSystem() System {
 	return system{
+		initVars:  rule.SharedVars{},
 		processes: []Process{},
 	}
 }
 
 type system struct {
+	initVars  rule.SharedVars
 	processes []Process
+}
+
+func (s system) InitVars() rule.SharedVars {
+	return s.initVars
 }
 
 func (s system) Processes() []Process {
 	return s.processes
+}
+
+func (s system) Declare(decls rule.SharedVars) System {
+	sv := rule.SharedVars{}
+	for x, n := range decls {
+		sv[x] = n
+	}
+	s.initVars = sv
+	return s
 }
 
 func (s system) Register(pid ProcessId, p Process) System {
