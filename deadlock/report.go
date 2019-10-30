@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/y-taka-23/ddsv-go/deadlock/rule"
+	"github.com/y-taka-23/ddsv-go/deadlock/rule/vars"
 )
 
 type StateId string
@@ -19,12 +20,12 @@ type LocationSet map[ProcessId]rule.Location
 type State interface {
 	Id() StateId
 	Locations() LocationSet
-	SharedVars() rule.SharedVars
+	SharedVars() vars.Shared
 }
 
 type state struct {
 	locations  LocationSet
-	sharedVars rule.SharedVars
+	sharedVars vars.Shared
 }
 
 func (s state) Id() StateId {
@@ -38,7 +39,7 @@ func (s state) Locations() LocationSet {
 	return s.locations
 }
 
-func (s state) SharedVars() rule.SharedVars {
+func (s state) SharedVars() vars.Shared {
 	return s.sharedVars
 }
 

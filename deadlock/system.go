@@ -2,6 +2,7 @@ package deadlock
 
 import (
 	"github.com/y-taka-23/ddsv-go/deadlock/rule"
+	"github.com/y-taka-23/ddsv-go/deadlock/rule/vars"
 )
 
 type ProcessId string
@@ -56,25 +57,25 @@ func (p process) Rules() rule.RuleSet {
 }
 
 type System interface {
-	InitVars() rule.SharedVars
+	InitVars() vars.Shared
 	Processes() []Process
-	Declare(rule.SharedVars) System
+	Declare(vars.Shared) System
 	Register(ProcessId, Process) System
 }
 
 func NewSystem() System {
 	return system{
-		initVars:  rule.SharedVars{},
+		initVars:  vars.Shared{},
 		processes: []Process{},
 	}
 }
 
 type system struct {
-	initVars  rule.SharedVars
+	initVars  vars.Shared
 	processes []Process
 }
 
-func (s system) InitVars() rule.SharedVars {
+func (s system) InitVars() vars.Shared {
 	return s.initVars
 }
 
@@ -82,12 +83,12 @@ func (s system) Processes() []Process {
 	return s.processes
 }
 
-func (s system) Declare(decls rule.SharedVars) System {
-	sv := rule.SharedVars{}
+func (s system) Declare(decls vars.Shared) System {
+	vs := vars.Shared{}
 	for x, n := range decls {
-		sv[x] = n
+		vs[x] = n
 	}
-	s.initVars = sv
+	s.initVars = vs
 	return s
 }
 
