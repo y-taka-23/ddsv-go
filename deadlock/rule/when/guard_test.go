@@ -37,7 +37,7 @@ func TestEq(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := when.Eq(tt.var_, tt.val)(tt.in)
+			got, err := when.Var(tt.var_).Is(tt.val)(tt.in)
 			if tt.wantError && errors.Is(err, nil) {
 				t.Fatalf("want error, but has no error")
 			}
@@ -81,7 +81,7 @@ func TestNotEq(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := when.NotEq(tt.var_, tt.val)(tt.in)
+			got, err := when.Var(tt.var_).IsNot(tt.val)(tt.in)
 			if tt.wantError && errors.Is(err, nil) {
 				t.Fatalf("want error, but has no error")
 			}
