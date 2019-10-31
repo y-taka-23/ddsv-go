@@ -64,7 +64,7 @@ func TestDetect(t *testing.T) {
 				Declare(vars.Shared{"x": 0}).
 				Register("P", deadlock.NewProcess().
 					EnterAt("0").
-					Define(rule.At("0").Let("", do.Set(1, "x")).MoveTo("1"))),
+					Define(rule.At("0").Let("", do.Set(1).ToVar("x")).MoveTo("1"))),
 			summary{state: 2, trans: 1, init: true, deadlock: 1},
 			false,
 		},
@@ -73,7 +73,7 @@ func TestDetect(t *testing.T) {
 			deadlock.NewSystem().
 				Register("P", deadlock.NewProcess().
 					EnterAt("0").
-					Define(rule.At("0").Let("", do.Set(1, "x")).MoveTo("1"))),
+					Define(rule.At("0").Let("", do.Set(1).ToVar("x")).MoveTo("1"))),
 			summary{},
 			true,
 		},

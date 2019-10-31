@@ -40,7 +40,7 @@ func TestCopy(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := do.Copy(tt.from, tt.to)(tt.in)
+			got, err := do.CopyVar(tt.from).ToVar(tt.to)(tt.in)
 			if tt.wantError && errors.Is(err, nil) {
 				t.Fatalf("want error, but has no error")
 			}
@@ -81,7 +81,7 @@ func TestSet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := do.Set(tt.val, tt.to)(tt.in)
+			got, err := do.Set(tt.val).ToVar(tt.to)(tt.in)
 			if tt.wantError && errors.Is(err, nil) {
 				t.Fatalf("want error, but has no error")
 			}
@@ -122,7 +122,7 @@ func TestAdd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := do.Add(tt.val, tt.to)(tt.in)
+			got, err := do.Add(tt.val).ToVar(tt.to)(tt.in)
 			if tt.wantError && errors.Is(err, nil) {
 				t.Fatalf("want error, but has no error")
 			}
