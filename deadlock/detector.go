@@ -1,8 +1,6 @@
 package deadlock
 
 import (
-	"errors"
-
 	"github.com/y-taka-23/ddsv-go/deadlock/rule"
 )
 
@@ -42,7 +40,7 @@ func (d detector) Detect(s System) (Report, error) {
 			for _, r := range p.Rules()[focus] {
 
 				fireable, err := r.Guard()(from.SharedVars())
-				if !errors.Is(err, nil) {
+				if err != nil {
 					return report{}, err
 				}
 				if !fireable {
@@ -56,7 +54,7 @@ func (d detector) Detect(s System) (Report, error) {
 				nextLocs[p.Id()] = r.Target()
 
 				nextVars, err := r.Action()(from.SharedVars())
-				if !errors.Is(err, nil) {
+				if err != nil {
 					return report{}, err
 				}
 

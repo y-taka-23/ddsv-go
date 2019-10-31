@@ -1,7 +1,6 @@
 package deadlock_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/y-taka-23/ddsv-go/deadlock"
@@ -82,10 +81,10 @@ func TestDetect(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := deadlock.NewDetector().Detect(tt.in)
-			if tt.wantError && errors.Is(err, nil) {
+			if tt.wantError && err == nil {
 				t.Fatalf("want error, but has no error")
 			}
-			if !tt.wantError && !errors.Is(err, nil) {
+			if !tt.wantError && err != nil {
 				t.Fatalf("want no error, but has error %v", err)
 			}
 			if summarize(got) != tt.want {

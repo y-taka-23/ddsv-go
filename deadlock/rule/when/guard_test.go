@@ -1,7 +1,6 @@
 package when_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/y-taka-23/ddsv-go/deadlock/rule/vars"
@@ -38,10 +37,10 @@ func TestEq(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := when.Var(tt.var_).Is(tt.val)(tt.in)
-			if tt.wantError && errors.Is(err, nil) {
+			if tt.wantError && err == nil {
 				t.Fatalf("want error, but has no error")
 			}
-			if !tt.wantError && !errors.Is(err, nil) {
+			if !tt.wantError && err != nil {
 				t.Fatalf("want no error, but has error %v", err)
 			}
 			if !tt.wantError && got != tt.want {
@@ -82,10 +81,10 @@ func TestNotEq(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := when.Var(tt.var_).IsNot(tt.val)(tt.in)
-			if tt.wantError && errors.Is(err, nil) {
+			if tt.wantError && err == nil {
 				t.Fatalf("want error, but has no error")
 			}
-			if !tt.wantError && !errors.Is(err, nil) {
+			if !tt.wantError && err != nil {
 				t.Fatalf("want no error, but has error %v", err)
 			}
 			if !tt.wantError && got != tt.want {
