@@ -21,16 +21,19 @@ type State interface {
 	Id() StateId
 	Locations() LocationSet
 	SharedVars() vars.Shared
+	Upstream() TransitionId
 }
 
 type state struct {
 	locations  LocationSet
 	sharedVars vars.Shared
+	upstream   TransitionId
 }
 
+// assume that s.Id() is independent from s.upstream
 func (s state) Id() StateId {
 	h := sha1.New()
-	serial := fmt.Sprintf("%+v", s)
+	serial := fmt.Sprintf("%+v%+v", s.locations, s.sharedVars)
 	h.Write([]byte(serial))
 	return StateId(fmt.Sprintf("%x", h.Sum(nil)))
 }
@@ -41,6 +44,10 @@ func (s state) Locations() LocationSet {
 
 func (s state) SharedVars() vars.Shared {
 	return s.sharedVars
+}
+
+func (s state) Upstream() TransitionId {
+	return s.upstream
 }
 
 type TransitionId string
@@ -90,6 +97,7 @@ type Report interface {
 	Transited() TransitionSet
 	Initial() StateId
 	Deadlocked() StateSet
+	Traces() TransitionSet
 }
 
 type report struct {
@@ -97,6 +105,7 @@ type report struct {
 	transited  TransitionSet
 	initial    StateId
 	deadlocked StateSet
+	traces     TransitionSet
 }
 
 func (rp report) Visited() StateSet {
@@ -113,6 +122,10 @@ func (rp report) Initial() StateId {
 
 func (rp report) Deadlocked() StateSet {
 	return rp.deadlocked
+}
+
+func (rp report) Traces() TransitionSet {
+	return rp.traces
 }
 
 type Printer struct {
@@ -135,7 +148,7 @@ func (pr Printer) Print(rp Report) (int, error) {
 		} else if _, ok := rp.Deadlocked()[s.Id()]; ok {
 			n, err = pr.printDeadlocked(s)
 		} else {
-			n, err = pr.printNormal(s)
+			n, err = pr.printState(s)
 		}
 		written += n
 		if err != nil {
@@ -143,11 +156,12 @@ func (pr Printer) Print(rp Report) (int, error) {
 		}
 	}
 	for _, t := range rp.Transited() {
-		n, err := fmt.Fprintf(
-			pr.writer,
-			"  \"%s\" -> \"%s\" [label=\"%s.%s\"];\n",
-			t.Source(), t.Target(), t.Process(), t.Label(),
-		)
+		n := 0
+		if _, ok := rp.Traces()[t.Id()]; ok {
+			n, err = pr.printTrace(t)
+		} else {
+			n, err = pr.printTransition(t)
+		}
 		written += n
 		if err != nil {
 			return written, err
@@ -162,7 +176,7 @@ func (pr Printer) Print(rp Report) (int, error) {
 	return written, nil
 }
 
-func (pr Printer) printNormal(s State) (int, error) {
+func (pr Printer) printState(s State) (int, error) {
 	return fmt.Fprintf(
 		pr.writer,
 		"  \"%s\" [label=\"%s\"]\n",
@@ -183,6 +197,22 @@ func (pr Printer) printDeadlocked(s State) (int, error) {
 		pr.writer,
 		"  \"%s\" [label=\"%s\", fillcolor=\"#FFAAAA\", style=\"solid,filled\"];\n",
 		s.Id(), stateLabel(s),
+	)
+}
+
+func (pr Printer) printTransition(t Transition) (int, error) {
+	return fmt.Fprintf(
+		pr.writer,
+		"  \"%s\" -> \"%s\" [label=\"%s.%s\"];\n",
+		t.Source(), t.Target(), t.Process(), t.Label(),
+	)
+}
+
+func (pr Printer) printTrace(t Transition) (int, error) {
+	return fmt.Fprintf(
+		pr.writer,
+		"  \"%s\" -> \"%s\" [label=\"%s.%s\", color=\"#FF0000\", fontcolor=\"#FF0000\"];\n",
+		t.Source(), t.Target(), t.Process(), t.Label(),
 	)
 }
 

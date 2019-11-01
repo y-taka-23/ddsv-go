@@ -23,7 +23,7 @@ func TestDetect(t *testing.T) {
 				Register("P", deadlock.NewProcess().
 					EnterAt("0").
 					Define(rule.At("0").MoveTo("1"))),
-			summary{state: 2, trans: 1, init: true, deadlock: 1},
+			summary{state: 2, trans: 1, init: true, deadlock: 1, trace: 1},
 			false,
 		},
 		{
@@ -33,7 +33,7 @@ func TestDetect(t *testing.T) {
 					EnterAt("0").
 					Define(rule.At("0").MoveTo("1")).
 					Define(rule.At("1").MoveTo("2"))),
-			summary{state: 3, trans: 2, init: true, deadlock: 1},
+			summary{state: 3, trans: 2, init: true, deadlock: 1, trace: 2},
 			false,
 		},
 		{
@@ -45,7 +45,7 @@ func TestDetect(t *testing.T) {
 				Register("Q", deadlock.NewProcess().
 					EnterAt("0").
 					Define(rule.At("0").MoveTo("1"))),
-			summary{state: 4, trans: 4, init: true, deadlock: 1},
+			summary{state: 4, trans: 4, init: true, deadlock: 1, trace: 2},
 			false,
 		},
 		{
@@ -54,7 +54,7 @@ func TestDetect(t *testing.T) {
 				Register("P", deadlock.NewProcess().
 					EnterAt("0").
 					Define(rule.At("0").MoveTo("0"))),
-			summary{state: 1, trans: 1, init: true, deadlock: 0},
+			summary{state: 1, trans: 1, init: true, deadlock: 0, trace: 0},
 			false,
 		},
 		{
@@ -64,7 +64,7 @@ func TestDetect(t *testing.T) {
 				Register("P", deadlock.NewProcess().
 					EnterAt("0").
 					Define(rule.At("0").Let("", do.Set(1).ToVar("x")).MoveTo("1"))),
-			summary{state: 2, trans: 1, init: true, deadlock: 1},
+			summary{state: 2, trans: 1, init: true, deadlock: 1, trace: 1},
 			false,
 		},
 		{
@@ -100,6 +100,7 @@ type summary struct {
 	trans    int
 	init     bool
 	deadlock int
+	trace    int
 }
 
 func summarize(rp deadlock.Report) summary {
@@ -110,5 +111,6 @@ func summarize(rp deadlock.Report) summary {
 		trans:    len(rp.Transited()),
 		init:     ok,
 		deadlock: len(rp.Deadlocked()),
+		trace:    len(rp.Traces()),
 	}
 }

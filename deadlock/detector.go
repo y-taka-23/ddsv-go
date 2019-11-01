@@ -19,6 +19,7 @@ func (d detector) Detect(s System) (Report, error) {
 	visited := StateSet{}
 	transited := TransitionSet{}
 	deadlocked := StateSet{}
+	traces := TransitionSet{}
 
 	initial := d.initialize(s)
 	queue := []State{initial}
@@ -58,7 +59,11 @@ func (d detector) Detect(s System) (Report, error) {
 					return report{}, err
 				}
 
-				to := state{locations: nextLocs, sharedVars: nextVars}
+				to := state{
+					locations:  nextLocs,
+					sharedVars: nextVars,
+					upstream:   "",
+				}
 
 				t := transition{
 					process: p.Id(),
@@ -68,12 +73,23 @@ func (d detector) Detect(s System) (Report, error) {
 				}
 				transited[t.Id()] = t
 				nexts++
+
+				// assume that state.Id() is independent from state.upstream
+				to.upstream = t.Id()
 				queue = append(queue, to)
 			}
 		}
 
 		if nexts == 0 {
 			deadlocked[from.Id()] = from
+			up := from.Upstream()
+			for up != "" {
+				// states and transitions in the path are certainly registered
+				t, _ := transited[up]
+				traces[up] = t
+				prev, _ := visited[t.Source()]
+				up = prev.Upstream()
+			}
 		}
 
 	}
@@ -83,6 +99,7 @@ func (d detector) Detect(s System) (Report, error) {
 		transited:  transited,
 		initial:    initial.Id(),
 		deadlocked: deadlocked,
+		traces:     traces,
 	}, nil
 
 }
@@ -95,5 +112,6 @@ func (_ detector) initialize(s System) State {
 	return state{
 		locations:  ls,
 		sharedVars: s.InitVars(),
+		upstream:   "",
 	}
 }
