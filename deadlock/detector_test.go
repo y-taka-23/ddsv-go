@@ -88,7 +88,7 @@ func TestDetect(t *testing.T) {
 				t.Fatalf("want no error, but has error %v", err)
 			}
 			if summarize(got) != tt.want {
-				t.Fatalf("want %+v, but %+v", tt.want, got)
+				t.Fatalf("want %+v, but %+v", tt.want, summarize(got))
 			}
 		})
 	}

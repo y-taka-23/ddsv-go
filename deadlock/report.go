@@ -30,7 +30,7 @@ type state struct {
 
 func (s state) Id() StateId {
 	h := sha1.New()
-	serial := fmt.Sprintf("%+v%+v", s.locations, s.sharedVars)
+	serial := fmt.Sprintf("%+v", s)
 	h.Write([]byte(serial))
 	return StateId(fmt.Sprintf("%x", h.Sum(nil)))
 }
@@ -43,7 +43,12 @@ func (s state) SharedVars() vars.Shared {
 	return s.sharedVars
 }
 
+type TransitionId string
+
+type TransitionSet map[TransitionId]Transition
+
 type Transition interface {
+	Id() TransitionId
 	Process() ProcessId
 	Label() rule.Label
 	Source() StateId
@@ -55,6 +60,13 @@ type transition struct {
 	label   rule.Label
 	source  StateId
 	target  StateId
+}
+
+func (t transition) Id() TransitionId {
+	h := sha1.New()
+	serial := fmt.Sprintf("%+v", t)
+	h.Write([]byte(serial))
+	return TransitionId(fmt.Sprintf("%x", h.Sum(nil)))
 }
 
 func (t transition) Process() ProcessId {
@@ -75,14 +87,14 @@ func (t transition) Target() StateId {
 
 type Report interface {
 	Visited() StateSet
-	Transited() []Transition
+	Transited() TransitionSet
 	Initial() StateId
 	Deadlocked() StateSet
 }
 
 type report struct {
 	visited    StateSet
-	transited  []Transition
+	transited  TransitionSet
 	initial    StateId
 	deadlocked StateSet
 }
@@ -91,7 +103,7 @@ func (rp report) Visited() StateSet {
 	return rp.visited
 }
 
-func (rp report) Transited() []Transition {
+func (rp report) Transited() TransitionSet {
 	return rp.transited
 }
 

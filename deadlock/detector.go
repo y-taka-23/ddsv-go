@@ -17,7 +17,7 @@ type detector struct{}
 func (d detector) Detect(s System) (Report, error) {
 
 	visited := StateSet{}
-	transited := []Transition{}
+	transited := TransitionSet{}
 	deadlocked := StateSet{}
 
 	initial := d.initialize(s)
@@ -32,7 +32,7 @@ func (d detector) Detect(s System) (Report, error) {
 		}
 		visited[from.Id()] = from
 
-		ts := []Transition{}
+		nexts := 0
 		for _, p := range s.Processes() {
 			// The locations of every processes are
 			// certainly defined inductively
@@ -66,16 +66,16 @@ func (d detector) Detect(s System) (Report, error) {
 					source:  from.Id(),
 					target:  to.Id(),
 				}
-				ts = append(ts, t)
+				transited[t.Id()] = t
+				nexts++
 				queue = append(queue, to)
 			}
 		}
 
-		if len(ts) == 0 {
+		if nexts == 0 {
 			deadlocked[from.Id()] = from
 		}
 
-		transited = append(transited, ts...)
 	}
 
 	return report{
