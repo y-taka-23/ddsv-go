@@ -18,6 +18,7 @@ func (d detector) Detect(s System) (Report, error) {
 
 	visited := StateSet{}
 	transited := TransitionSet{}
+	accepting := StateSet{}
 	deadlocked := StateSet{}
 	traces := TransitionSet{}
 
@@ -81,6 +82,10 @@ func (d detector) Detect(s System) (Report, error) {
 		}
 
 		if nexts == 0 {
+			if acceptable(s, from) {
+				accepting[from.Id()] = from
+				continue
+			}
 			deadlocked[from.Id()] = from
 			up := from.Upstream()
 			for up != "" {
@@ -98,6 +103,7 @@ func (d detector) Detect(s System) (Report, error) {
 		visited:    visited,
 		transited:  transited,
 		initial:    initial.Id(),
+		accepting:  accepting,
 		deadlocked: deadlocked,
 		traces:     traces,
 	}, nil
@@ -114,4 +120,22 @@ func (_ detector) initialize(s System) State {
 		sharedVars: s.InitVars(),
 		upstream:   "",
 	}
+}
+
+func acceptable(s System, state State) bool {
+	for _, p := range s.Processes() {
+		// The locations is certainly defined
+		focus, _ := state.Locations()[p.Id()]
+		found := false
+		for _, l := range p.HaltingPoints() {
+			if focus == l {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
 }

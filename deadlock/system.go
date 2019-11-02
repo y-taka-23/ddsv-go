@@ -11,22 +11,26 @@ type Process interface {
 	Id() ProcessId
 	EntryPoint() rule.Location
 	Rules() rule.RuleSet
+	HaltingPoints() []rule.Location
 	EnterAt(rule.Location) Process
 	Define(rule.Rule) Process
+	HaltAt(...rule.Location) Process
 }
 
 func NewProcess() Process {
 	return process{
-		id:         "",
-		entryPoint: "",
-		rules:      rule.RuleSet{},
+		id:            "",
+		entryPoint:    "",
+		rules:         rule.RuleSet{},
+		haltingPoints: []rule.Location{},
 	}
 }
 
 type process struct {
-	id         ProcessId
-	entryPoint rule.Location
-	rules      rule.RuleSet
+	id            ProcessId
+	entryPoint    rule.Location
+	rules         rule.RuleSet
+	haltingPoints []rule.Location
 }
 
 func (p process) Id() ProcessId {
@@ -54,6 +58,15 @@ func (p process) Define(r rule.Rule) Process {
 
 func (p process) Rules() rule.RuleSet {
 	return p.rules
+}
+
+func (p process) HaltAt(ls ...rule.Location) Process {
+	p.haltingPoints = ls
+	return p
+}
+
+func (p process) HaltingPoints() []rule.Location {
+	return p.haltingPoints
 }
 
 type System interface {
@@ -94,9 +107,10 @@ func (s system) Declare(decls vars.Shared) System {
 
 func (s system) Register(pid ProcessId, p Process) System {
 	registered := process{
-		id:         pid,
-		entryPoint: p.EntryPoint(),
-		rules:      p.Rules(),
+		id:            pid,
+		entryPoint:    p.EntryPoint(),
+		rules:         p.Rules(),
+		haltingPoints: p.HaltingPoints(),
 	}
 	s.processes = append(s.processes, registered)
 	return s
