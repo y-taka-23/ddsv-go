@@ -7,7 +7,41 @@ import (
 	"github.com/y-taka-23/ddsv-go/deadlock/rule/vars"
 )
 
-func TestCopy(t *testing.T) {
+func TestNothing(t *testing.T) {
+
+	tests := []struct {
+		name string
+		want vars.Shared
+	}{
+		{
+			name: "no var",
+			want: vars.Shared{},
+		},
+		{
+			name: "single var",
+			want: vars.Shared{"x": 42},
+		},
+		{
+			name: "multiple vars",
+			want: vars.Shared{"x": 42, "y": 42},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := do.Nothing()(tt.want)
+			if err != nil {
+				t.Fatalf("want no error, but has error %v", err)
+			}
+			if !eqVars(got, tt.want) {
+				t.Fatalf("want %+v, but %+v", tt.want, got)
+			}
+		})
+	}
+
+}
+
+func TestCopyVar(t *testing.T) {
 
 	tests := []struct {
 		name      string

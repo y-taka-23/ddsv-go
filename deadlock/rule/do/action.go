@@ -8,6 +8,12 @@ import (
 
 type Action func(vars.Shared) (vars.Shared, error)
 
+func Nothing() Action {
+	return func(vs vars.Shared) (vars.Shared, error) {
+		return vs.Clone(), nil
+	}
+}
+
 type Operation interface {
 	ToVar(vars.Name) Action
 }

@@ -17,22 +17,27 @@ func Var(x vars.Name) Testee {
 }
 
 func (t Testee) Is(n int) Guard {
-	return func(vs vars.Shared) (bool, error) {
-		val, ok := vs[t.name]
-		if !ok {
-			return false, fmt.Errorf("undeclared variable: %s", t.name)
-		}
-		return val == n, nil
-	}
-
+	return t.check(func(x, y int) bool { return x == y }, n)
 }
 
 func (t Testee) IsNot(n int) Guard {
+	return t.check(func(x, y int) bool { return x != y }, n)
+}
+
+func (t Testee) IsLessThan(n int) Guard {
+	return t.check(func(x, y int) bool { return x < y }, n)
+}
+
+func (t Testee) IsGreaterThan(n int) Guard {
+	return t.check(func(x, y int) bool { return x > y }, n)
+}
+
+func (t Testee) check(op func(x, y int) bool, n int) Guard {
 	return func(vs vars.Shared) (bool, error) {
 		val, ok := vs[t.name]
 		if !ok {
 			return false, fmt.Errorf("undeclared variable: %s", t.name)
 		}
-		return val != n, nil
+		return op(val, n), nil
 	}
 }
