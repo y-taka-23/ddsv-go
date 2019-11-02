@@ -12,7 +12,7 @@ Example: Dining Philosophers Problem
 
 The [dining philosophers problem](https://en.wikipedia.org/wiki/Dining_philosophers_problem) is one of the best-known examples of conccerent programming. In this model, some philosophers are sitting on a round table and forks are served between each philosophers. A pasta bawl is also served at the centre of the table, but philosophers have to hold both of left/right forks to help themselves. Here the philosophers are analogues of processes/threads, and the forks are that of shared resources.
 
-(TODO: illustration)
+<img src="/assets/table.png" width=300px align="right" alt="philosophers and forks around a table">
 
 In a naive implementation of this setting, for example, all philosophers act as following:
 
@@ -79,7 +79,7 @@ func main() {
 }
 ```
 
-(TODO: screenshot)
+<img src="/assets/trace_bad.png" height=500px alt="transition graph which has a deadlocked state">
 
 The graph shows an error case in which `P1` gets `f1` then `P2` gets `f2`. The red state is a deadlock, `P1` waits `f2` and `P2` waits `f1` respectively forever.
 
@@ -91,7 +91,7 @@ Define(rule.At("1").Only(when.Var(right).IsNot(0)).
 	Let("down_l", do.Set(0).ToVar(left)).MoveTo("0")).
 ```
 
-(TODO: screenshot)
+<img src="/assets/trace_good.png" height=500px alt="transition graph without the deadlock">
 
 More examples are demonstrated in [examples](/examples) directory. Check it out!
 
