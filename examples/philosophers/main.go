@@ -32,7 +32,7 @@ func main() {
 	system := deadlock.NewSystem().
 		Declare(vars.Shared{"f1": 0, "f2": 0}).
 		Register("P1", philo(1, "f1", "f2")).
-		Register("P2", philo(1, "f2", "f1"))
+		Register("P2", philo(2, "f2", "f1"))
 
 	report, err := deadlock.NewDetector().Detect(system)
 	if err != nil {
