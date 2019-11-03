@@ -7,6 +7,7 @@ import (
 
 type ProcessId string
 
+// Process represents a single process in a concurrent system.
 type Process interface {
 	Id() ProcessId
 	EntryPoint() rule.Location
@@ -69,6 +70,9 @@ func (p process) HaltingPoints() []rule.Location {
 	return p.haltingPoints
 }
 
+// System represents a set of processes.
+// In the deadlock detection, they act concurrently
+// accessing the pre-declared global shared variables.
 type System interface {
 	InitVars() vars.Shared
 	Processes() []Process

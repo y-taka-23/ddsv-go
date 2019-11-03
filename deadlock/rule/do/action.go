@@ -1,3 +1,6 @@
+/*
+ * The do package provides human-readable DSL for variable mutations.
+ */
 package do
 
 import (
@@ -6,6 +9,8 @@ import (
 	"github.com/y-taka-23/ddsv-go/deadlock/rule/vars"
 )
 
+// Action changes the values of shared variables.
+// If the specified variable name is undeclared, it returns an error.
 type Action func(vars.Shared) (vars.Shared, error)
 
 func Nothing() Action {

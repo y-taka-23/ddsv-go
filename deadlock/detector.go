@@ -1,9 +1,16 @@
+/*
+ * The deadlock package provides a simple algorithm checker.
+   It contains a DSL to describe multi-process system
+   and a detector for deadlocks in the concurrent product of the processes.
+*/
 package deadlock
 
 import (
 	"github.com/y-taka-23/ddsv-go/deadlock/rule"
 )
 
+// Detector searches the state space of given system
+// and reports presence of deadlocks.
 type Detector interface {
 	Detect(s System) (Report, error)
 }

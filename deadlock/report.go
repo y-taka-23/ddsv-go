@@ -17,6 +17,8 @@ type StateSet map[StateId]State
 
 type LocationSet map[ProcessId]rule.Location
 
+// State represents a state of the system's each moment
+// i.e. where processes are and what the value of variables are.
 type State interface {
 	Id() StateId
 	Locations() LocationSet
@@ -54,6 +56,7 @@ type TransitionId string
 
 type TransitionSet map[TransitionId]Transition
 
+// Transition represents a transition from the Source state to the Target state.
 type Transition interface {
 	Id() TransitionId
 	Process() ProcessId
@@ -92,6 +95,7 @@ func (t transition) Target() StateId {
 	return t.target
 }
 
+// Report contains the result of the state space searching
 type Report interface {
 	Visited() StateSet
 	Transited() TransitionSet
@@ -134,6 +138,7 @@ func (rp report) Traces() TransitionSet {
 	return rp.traces
 }
 
+// Printer outputs reports in Graphviz's dot notation
 type Printer struct {
 	writer io.Writer
 }

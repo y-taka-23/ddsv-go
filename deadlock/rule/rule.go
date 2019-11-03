@@ -1,3 +1,6 @@
+/*
+ * The rule package provides human-readable DSL to define transition rules.
+ */
 package rule
 
 import (
@@ -6,12 +9,15 @@ import (
 	"github.com/y-taka-23/ddsv-go/deadlock/rule/when"
 )
 
+// Location represents the program counter of each process.
 type Location string
 
+// Label is human-readable name of each transition.
 type Label string
 
 type RuleSet map[Location][]Rule
 
+// Rule defines transition rules of the process.
 type Rule interface {
 	Source() Location
 	Target() Location

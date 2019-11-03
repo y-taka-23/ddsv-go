@@ -1,3 +1,6 @@
+/*
+ * The when package provides human-readable DSL for conditional transitions.
+ */
 package when
 
 import (
@@ -6,6 +9,9 @@ import (
 	"github.com/y-taka-23/ddsv-go/deadlock/rule/vars"
 )
 
+// Guard determines whether a transition is fireable
+// under the given values of shared variables.
+// If the specified variable name is undeclared, it returns an error.
 type Guard func(vars.Shared) (bool, error)
 
 type Testee struct {
