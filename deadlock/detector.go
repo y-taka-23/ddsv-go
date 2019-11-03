@@ -1,8 +1,6 @@
-/*
- * The deadlock package provides a simple algorithm checker.
-   It contains a DSL to describe multi-process system
-   and a detector for deadlocks in the concurrent product of the processes.
-*/
+// Package deadlock provides a simple algorithm checker.
+// It contains a DSL to describe multi-process system
+// and a detector for deadlocks in the concurrent product of the processes.
 package deadlock
 
 import (

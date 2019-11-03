@@ -1,6 +1,4 @@
-/*
- * The do package provides human-readable DSL for variable mutations.
- */
+// Package do provides human-readable DSL for variable mutations.
 package do
 
 import (

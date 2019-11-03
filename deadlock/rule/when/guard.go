@@ -1,6 +1,4 @@
-/*
- * The when package provides human-readable DSL for conditional transitions.
- */
+// Package when provides human-readable DSL for conditional transitions.
 package when
 
 import (

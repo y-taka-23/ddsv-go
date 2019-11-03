@@ -1,6 +1,4 @@
-/*
- * The vars package provides variables shared by multiple processes.
- */
+// Package vars provides variables shared by multiple processes.
 package vars
 
 type Name string

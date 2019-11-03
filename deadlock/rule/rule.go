@@ -1,6 +1,4 @@
-/*
- * The rule package provides human-readable DSL to define transition rules.
- */
+// Package rule provides human-readable DSL to define transition rules.
 package rule
 
 import (
