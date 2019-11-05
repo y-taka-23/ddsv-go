@@ -13,41 +13,55 @@ import (
 
 func main() {
 
-	capacity := 2
+	capacity := 1
 
-	base := func(mutex, me, you vars.Name) deadlock.Process {
+	waitConditionVar := func(mutex, cond vars.Name) do.Action {
+		return func(vs vars.Shared) (vars.Shared, error) {
+			newVars := vs.Clone()
+			newVars[mutex] = 0
+			newVars[cond] = 1
+			return newVars, nil
+		}
+	}
+
+	producer := func(queue, mutex, over, under vars.Name) deadlock.Process {
 		return deadlock.NewProcess().
 			EnterAt("0").
 			Define(rule.At("0").Only(when.Var(mutex).Is(0)).
 				Let("lock", do.Set(1).ToVar(mutex)).MoveTo("1")).
-			Define(rule.At("2").Only(when.Var(me).Is(1)).
-				Let("wakeup", do.Set(0).ToVar(me)).MoveTo("0")).
-			Define(rule.At("3").
-				Let("signal", do.Set(1).ToVar(you)).MoveTo("4")).
+			Define(rule.At("1").Only(when.Var(queue).Is(capacity)).
+				Let("wait", waitConditionVar(mutex, over)).MoveTo("3")).
+			Define(rule.At("3").Only(when.Var(over).Is(0)).
+				Let("wakeup", do.Nothing()).MoveTo("0")).
+			Define(rule.At("1").Only(when.Var(queue).IsLessThan(capacity)).
+				Let("produce", do.Add(1).ToVar(queue)).MoveTo("4")).
 			Define(rule.At("4").
+				Let("signal", do.Set(0).ToVar(under)).MoveTo("5")).
+			Define(rule.At("5").
 				Let("unlock", do.Set(0).ToVar(mutex)).MoveTo("0"))
 	}
 
-	producer := func(buffer, mutex, me, you vars.Name) deadlock.Process {
-		return base(mutex, me, you).
-			Define(rule.At("1").Only(when.Var(buffer).Is(capacity)).
-				Let("wait", do.Set(0).ToVar(mutex)).MoveTo("2")).
-			Define(rule.At("1").Only(when.Var(buffer).IsLessThan(capacity)).
-				Let("produce", do.Add(1).ToVar(buffer)).MoveTo("3"))
-	}
-
-	consumer := func(buffer, mutex, me, you vars.Name) deadlock.Process {
-		return base(mutex, me, you).
-			Define(rule.At("1").Only(when.Var(buffer).Is(0)).
-				Let("wait", do.Set(0).ToVar(mutex)).MoveTo("2")).
-			Define(rule.At("1").Only(when.Var(buffer).IsGreaterThan(0)).
-				Let("consume", do.Add(-1).ToVar(buffer)).MoveTo("3"))
+	consumer := func(queue, mutex, over, under vars.Name) deadlock.Process {
+		return deadlock.NewProcess().
+			EnterAt("0").
+			Define(rule.At("0").Only(when.Var(mutex).Is(0)).
+				Let("lock", do.Set(1).ToVar(mutex)).MoveTo("1")).
+			Define(rule.At("1").Only(when.Var(queue).Is(0)).
+				Let("wait", waitConditionVar(mutex, under)).MoveTo("3")).
+			Define(rule.At("3").Only(when.Var(under).Is(0)).
+				Let("wakeup", do.Nothing()).MoveTo("0")).
+			Define(rule.At("1").Only(when.Var(queue).IsGreaterThan(0)).
+				Let("consume", do.Add(-1).ToVar(queue)).MoveTo("4")).
+			Define(rule.At("4").
+				Let("signal", do.Set(0).ToVar(over)).MoveTo("5")).
+			Define(rule.At("5").
+				Let("unlock", do.Set(0).ToVar(mutex)).MoveTo("0"))
 	}
 
 	system := deadlock.NewSystem().
-		Declare(vars.Shared{"buf": 0, "mut": 0, "prod": 0, "cons": 0}).
-		Register("P", producer("buf", "mut", "prod", "cons")).
-		Register("C", consumer("buf", "mut", "cons", "prod"))
+		Declare(vars.Shared{"que": 0, "mut": 0, "over": 0, "under": 0}).
+		Register("P", producer("que", "mut", "over", "under")).
+		Register("C", consumer("que", "mut", "over", "under"))
 
 	report, err := deadlock.NewDetector().Detect(system)
 	if err != nil {
