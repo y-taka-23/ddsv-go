@@ -16,11 +16,11 @@ The [dining philosophers problem](https://en.wikipedia.org/wiki/Dining_philosoph
 
 In a naive implementation of this setting, for example, all philosophers act as following:
 
-1. Pick up the fork in his left side
-2. Pick up the fork in his right side
+1. Pick up the fork on the left side
+2. Pick up the fork on the right side
 3. Eat the pasta
-4. Put down the fork in his right hand
-5. Put down the fork in his left hand
+4. Put down the fork on the right side
+5. Put down the fork on the left side
 
 When multiple philosophers act like this concurrently, as you noticed, it results in a __deadlock__. Let's model the situation and detect the deadlocked state by this package.
 
@@ -98,4 +98,4 @@ More examples are demonstrated in the [examples](/examples) directory. Check it 
 Acknowledgements
 ----------------
 
-* [Multi-thread programming by DYI deadlock detector]() by [@hatsugai](https://github.com/hatsugai)
+* [Multi-thread programming by DIY deadlock detector]() by [@hatsugai](https://github.com/hatsugai)
