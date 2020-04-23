@@ -98,4 +98,4 @@ More examples are demonstrated in the [examples](/examples) directory. Check it 
 Acknowledgements
 ----------------
 
-* [Multi-thread programming by DIY deadlock detector]() by [@hatsugai](https://github.com/hatsugai)
+* [Learn about multi-thread programming by DIY deadlock detector](https://principia.connpass.com/event/143181/) by [@hatsugai](https://github.com/hatsugai)
